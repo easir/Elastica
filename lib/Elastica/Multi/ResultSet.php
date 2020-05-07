@@ -61,19 +61,22 @@ class ResultSet implements \Iterator, \ArrayAccess, \Countable
         if (isset($responseData['responses']) && is_array($responseData['responses'])) {
             reset($searches);
             foreach ($responseData['responses'] as $key => $responseData) {
-                $currentSearch = each($searches);
+                //todo in php 7.3 $firstKeyCurrentSearch = array_key_first($array);
+                $firstKeyCurrentSearch = key($searches);
+                reset($searches);
+                $currentSearch = array_shift($searches);
 
-                if ($currentSearch === false) {
+                if ($currentSearch === null) {
                     throw new InvalidException('No result found for search #'.$key);
-                } elseif (!$currentSearch['value'] instanceof BaseSearch) {
+                } elseif (!$currentSearch instanceof BaseSearch) {
                     throw new InvalidException('Invalid object for search #'.$key.' provided. Should be Elastica\Search');
                 }
 
-                $search = $currentSearch['value'];
+                $search = $currentSearch;
                 $query = $search->getQuery();
 
                 $response = new Response($responseData);
-                $this->_resultSets[$currentSearch['key']] = new BaseResultSet($response, $query);
+                $this->_resultSets[$firstKeyCurrentSearch] = new BaseResultSet($response, $query);
             }
         }
     }
